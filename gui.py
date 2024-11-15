@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, scrolledtext
+from tkinter.font import Font
 from scanner import start_scan
 from graph import Graph
 from counter import Counter
@@ -10,35 +11,47 @@ class SQLVulnScannerGUI:
         self.root = root
         self.root.title("SQL Vulnerability Scanner")
 
-        # URL Input
-        self.url_label = ttk.Label(root, text="Enter URLs (one per line):")
-        self.url_label.grid(row=0, column=0, padx=10, pady=5, sticky="W")
+        # Set font and style
+        self.style = ttk.Style()
+        self.style.configure('TLabel', font=('Helvetica', 10))
+        self.style.configure('TButton', font=('Helvetica', 10))
+        
+        # Sidebar
+        self.sidebar = ttk.Frame(root, width=200, height=400, relief='sunken')
+        self.sidebar.grid(row=0, column=0, rowspan=7, sticky="NS")
+        
+        self.url_label = ttk.Label(self.sidebar, text="Enter URLs:")
+        self.url_label.pack(padx=10, pady=5, anchor="w")
 
-        self.url_input = scrolledtext.ScrolledText(root, width=50, height=10)
-        self.url_input.grid(row=1, column=0, padx=10, pady=5)
+        self.url_input = scrolledtext.ScrolledText(self.sidebar, width=25, height=10)
+        self.url_input.pack(padx=10, pady=5)
 
-        # Start Button
-        self.start_button = ttk.Button(root, text="Start Scan", command=self.start_scan)
-        self.start_button.grid(row=2, column=0, padx=10, pady=5)
+        self.start_button = ttk.Button(self.sidebar, text="Start Scan", command=self.start_scan)
+        self.start_button.pack(padx=10, pady=5)
 
-        # Live Counter
-        self.counter_label = ttk.Label(root, text="Vulnerabilities Found:")
-        self.counter_label.grid(row=3, column=0, padx=10, pady=5, sticky="W")
+        # Main Panel
+        self.main_panel = ttk.Frame(root, width=600, height=400)
+        self.main_panel.grid(row=0, column=1, rowspan=6, sticky="NSEW")
 
-        self.counter_value = ttk.Label(root, text="0")
-        self.counter_value.grid(row=3, column=0, padx=150, pady=5, sticky="W")
+        self.counter_label = ttk.Label(self.main_panel, text="Vulnerabilities Found:")
+        self.counter_label.pack(padx=10, pady=5, anchor="w")
 
-        # Graph Area
-        self.graph_frame = ttk.Frame(root, width=400, height=200)
-        self.graph_frame.grid(row=4, column=0, padx=10, pady=5)
+        self.counter_value = ttk.Label(self.main_panel, text="0")
+        self.counter_value.pack(padx=10, pady=5, anchor="w")
+
+        self.graph_frame = ttk.Frame(self.main_panel, width=400, height=200)
+        self.graph_frame.pack(padx=10, pady=5)
         self.graph = Graph(self.graph_frame)
 
-        # Error Log
-        self.error_log_label = ttk.Label(root, text="MySQL Error Log:")
-        self.error_log_label.grid(row=5, column=0, padx=10, pady=5, sticky="W")
+        self.error_log_label = ttk.Label(self.main_panel, text="MySQL Error Log:")
+        self.error_log_label.pack(padx=10, pady=5, anchor="w")
 
-        self.error_log = scrolledtext.ScrolledText(root, width=50, height=10)
-        self.error_log.grid(row=6, column=0, padx=10, pady=5)
+        self.error_log = scrolledtext.ScrolledText(self.main_panel, width=70, height=10)
+        self.error_log.pack(padx=10, pady=5)
+
+        # Status Bar
+        self.status_bar = ttk.Label(root, text="Ready", relief='sunken', anchor='w')
+        self.status_bar.grid(row=7, column=0, columnspan=2, sticky="EW")
 
         # Initialize Counter and Error Logger
         self.counter = Counter(self.counter_value)
@@ -46,7 +59,9 @@ class SQLVulnScannerGUI:
 
     def start_scan(self):
         urls = self.url_input.get("1.0", tk.END).strip().split("\n")
+        self.status_bar.config(text="Scanning...")
         start_scan(urls, self.counter, self.graph, self.error_logger)
+        self.status_bar.config(text="Scan Complete")
 
 if __name__ == "__main__":
     root = tk.Tk()
